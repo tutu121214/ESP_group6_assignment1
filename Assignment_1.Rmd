@@ -6,8 +6,7 @@ a
 
 #define the split_punct function:(Q4)
 split_punct <- function(words, marks){
-  pattern <- marks#e.g. pattern <- "([^\\s]+)([,?.!])"#正则表达式
-  new <- gsub(pattern, "\\1 \\2", words)
+  new <- gsub(marks, "\\1 \\2", words)
   result_vec <- unlist(strsplit(new, split = "\\s+"))
   return(result_vec)
 }
