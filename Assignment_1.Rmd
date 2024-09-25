@@ -1,14 +1,16 @@
-setwd("D:/Users/tt/SDS-Sem1/Statistical Programming/Assignment")
+#setwd("D:/Users/tt/SDS-Sem1/Statistical Programming/Assignment")
 a <- scan("4300-0.txt",what="character",skip=73,nlines=32858-73,fileEncoding="UTF-8")
 a <- gsub("_(","",a,fixed=TRUE) ## remove "_("
 a
-marks <- c(".",",")
-marks_position = grep(marks,a,fixed=TRUE)
+
+#define the split_punct function:(Q4)
 split_punct <- function(words, marks){
-  pattern <- "[,.]"#suppose to be the input marks#正则表达式——包含所有需要找的标点符号
-  matches_order <- grep(pattern, a, fixed = FALSE)#找到含标点符号的字符位置
-  marks_len <- length(matches_order)# 含有标点符号的词语个数
-  full_list <- rep("",length(a)+marks_len)#建立一个可以同时放下分裂后的单词和标点的空列表
-  f <- matches_order+1:length(matches_order)#f是原来标点符号往后一个位置的索引列表（分割出来的标点要放的位置）
-  a[matches_order]
+  pattern <- marks#e.g. pattern <- "([^\\s]+)([,?.!])"#正则表达式
+  new <- gsub(pattern, "\\1 \\2", words)
+  result_vec <- unlist(strsplit(new, split = "\\s+"))
+  return(result_vec)
 }
+
+#Q5:Use the function to seperate the punctuation marks from words they are attached to in the text.
+pattern <- "([^\\s]+)([,.;!:?])"
+split_punct(a, pattern)
