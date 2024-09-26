@@ -3,3 +3,43 @@ a <- scan("4300-0.txt",what="character",skip=73,nlines=32858-73,
 fileEncoding="UTF-8")
 a <- gsub("_(","",a,fixed=TRUE) ## remove "_("
 
+#define the split_punct function:(Q4)
+split_punct <- function(words, marks){
+  new <- gsub(marks, "\\1 \\2", words)
+  result_vec <- unlist(strsplit(new, split = "\\s+"))
+  return(result_vec)
+}
+
+#Q5:Use the function to seperate the punctuation marks from words they are attached to in the text.
+pattern <- "([^\\s]+)([,.;!:?])"
+split_punct(a, pattern)
+
+#Q6a
+a_split <- split_punct(a, pattern)
+a_lower <- tolower(a_split)
+a_lower
+
+#Q6b
+a_unique <- unique(a_lower)
+a_unique
+
+#Q6c
+index_vector <- match(a_lower, a_unique)
+index_vector
+occur_counts <- tabulate(index_vector)
+
+#Q6d
+threshold_search <- function(counts, desired_count) {
+  sorted_counts <- sort(counts, decreasing = TRUE)
+  return(sorted_counts[desired_count])
+}
+
+threshold <- threshold_search(occur_counts, 1000)
+threshold
+
+#Q6e
+common_words <- a_unique[occur_counts >= threshold]
+common_words
+
+
+
