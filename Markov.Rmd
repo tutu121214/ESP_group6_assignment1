@@ -3,30 +3,41 @@ a <- scan("4300-0.txt",what="character",skip=73,nlines=32858-73,
 fileEncoding="UTF-8")
 a <- gsub("_(","",a,fixed=TRUE) ## remove "_("
 
-#define the split_punct function:(Q4)
-split_punct <- function(words, marks){
-  new <- gsub(marks, "\\1 \\2", words)
-  result_vec <- unlist(strsplit(new, split = "\\s+"))
-  return(result_vec)
+marks_len <- 0
+  full_list <- words
+  
+  for(punc in marks){
+    full_list_tmp <- full_list
+    matches_order <- grep(punc, full_list_tmp, fixed = TRUE)
+    marks_len <- marks_len + length(matches_order)
+    full_list <- rep("",length(full_list_tmp)+marks_len) 
+    f <- matches_order+1:length(matches_order)
+    full_list[f] <- punc
+    full_list[-f] <- gsub(punc,"",full_list_tmp,fixed = TRUE)
+  }
+  return(full_list)
 }
 
 #Q5:Use the function to seperate the punctuation marks from words they are attached to in the text.
-pattern <- "([^\\s]+)([,.;!:?])"
-split_punct(a, pattern)
+marks <- c(".",",",";","!",":","?")
+split_punct(a, marks)
 
 #Q6a
 a_split <- split_punct(a, pattern)
 a_lower <- tolower(a_split)
 a_lower
 
-#Q6b
+
 a_unique <- unique(a_lower)
 a_unique
 
-#Q6c
+#Q6b
 index_vector <- match(a_lower, a_unique)
 index_vector
+
+#Q6c
 occur_counts <- tabulate(index_vector)
+occur_counts
 
 #Q6d
 threshold_search <- function(counts, desired_count) {
@@ -41,5 +52,17 @@ threshold
 common_words <- a_unique[occur_counts >= threshold]
 common_words
 
+#Q7a
+a_lower_2 <- match(a_lower, common_words)
+a_lower_2
 
+#Q7b
+mlag <- 4
+n <- length(a_lower)
+M <- matrix(NA, n - mlag, mlag+1)
+
+for(i in 1:(mlag+1)){
+  M[,i] <- a_lower_2[i:(n-mlag+i-1)]
+}
+M
 
