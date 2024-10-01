@@ -8,7 +8,6 @@ a
 ##marks_position = grep(marks,words,fixed=TRUE)
 split_punct <- function(words, marks){
 
-  marks_len <- 0
   full_list <- words
   
   for(punc in marks){#Iterate over each element in marks
