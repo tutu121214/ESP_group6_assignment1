@@ -52,7 +52,7 @@ threshold#出现次数最多的第1000个单词的词频
 
 #Q6e
 common_words <- a_unique[occur_counts >= threshold]
-##occur_counts中词频大于threshold的位置，返回该位置对应的a_unique中的单词
+##occur_counts中词频大于threshold的位置，返回该位置对应的a_unique中的单词（最常出现的1000个单词）
 common_words
 
 #Q7a
