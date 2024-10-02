@@ -1,0 +1,180 @@
+#Q1-Q3
+#setwd("C:/Users/HW/Documents/ESP_group6_assignment1")
+a <- scan("4300-0.txt",what="character",skip=73,nlines=32858-73,fileEncoding="UTF-8")
+a <- gsub("_(","",a,fixed=TRUE) ## remove "_("
+a
+
+#define the split_punct function:(Q4)
+##marks_position = grep(marks,words,fixed=TRUE)
+split_punct <- function(words, marks){
+
+  full_list <- words
+  
+  for(punc in marks){#Iterate over each element in marks
+    full_list_tmp <- full_list
+    matches_order <- grep(punc, full_list_tmp, fixed = TRUE)#Find the character position of the corresponding punctuation mark
+    marks_len <- length(matches_order)#Number of words with corresponding punctuation marks
+    full_list <- rep("",length(full_list_tmp)+marks_len)#Create an empty list that can drop both split words and punctuation.
+    f <- matches_order+1:length(matches_order)#f is an indexed list of the original punctuation one position back (where the split punctuation is to be placed)
+    full_list[f] <- punc
+    full_list[-f] <- gsub(punc,"",full_list_tmp,fixed = TRUE)
+  }
+  return(full_list)
+}
+
+#Q5:Use the function to seperate the punctuation marks from words they are attached to in the text.
+marks <- c(".",",",";","!",":","?")
+split_punct(a, marks)
+
+
+#Q6a
+a_split <- split_punct(a, marks)
+a_lower <- tolower(a_split)
+a_lower
+
+
+a_unique <- unique(a_lower)
+a_unique
+
+#Q6b
+index_vector <- match(a_lower, a_unique)
+index_vector
+
+#Q6c
+occur_counts <- tabulate(index_vector)
+occur_counts
+
+#Q6d
+threshold_search <- function(counts, desired_count) {
+  sorted_counts <- sort(counts, decreasing = TRUE)
+  return(sorted_counts[desired_count])
+}
+
+threshold <- threshold_search(occur_counts, 1000)
+threshold
+
+#Q6e
+common_words <- a_unique[occur_counts >= threshold]
+common_words
+
+#Q7a
+a_lower_2 <- match(a_lower, common_words)
+a_lower_2
+
+#Q7b
+mlag <- 4
+n <- length(a_lower)
+M <- matrix(NA, n - mlag, mlag+1)
+
+for(i in 1:(mlag+1)){
+  M[,i] <- a_lower_2[i:(n-mlag+i-1)]
+}
+M
+
+
+#Q8
+simulate_text <- function(M, b, nw, mlag) {
+# Randomly select the first word from the non-NA word
+  current_sequence <- sample(M[!is.na(M[,1]), 1], 1)
+  generated_text <- vector("character", nw)
+  generated_text[1] <- b[current_sequence]
+  
+  # Generate the next word
+  for (i in 2:nw) {
+    next_word_found <- FALSE
+    for (j in mlag:1) {
+      if (i > j) {
+        current_sequence_len <- length(current_sequence)
+        compare_len <- min(j, current_sequence_len)
+        # Compare rows of M with the current_sequence for the appropriate columns
+        matched_rows <- apply(M[, 1:j, drop = FALSE], 1, function(row) {
+          all(row == current_sequence[(current_sequence_len - compare_len + 1):current_sequence_len])
+        })
+        # Find a matching sequence in matrix M
+        possible_next_words <- M[matched_rows, (j + 1)]
+        possible_next_words <- possible_next_words[!is.na(possible_next_words)]
+        if (length(possible_next_words) > 0) {
+        # Choose at random from the next possible word
+          next_word <- sample(possible_next_words, 1)
+          generated_text[i] <- b[next_word]
+          if (current_sequence_len == mlag) {
+          # If the length is equal to mlag, remove the first word and add the new word
+            current_sequence <- c(current_sequence[-1], next_word)
+          } else {
+          # Otherwise add new words directly
+            current_sequence <- c(current_sequence, next_word)
+          }
+          next_word_found <- TRUE
+          break
+        }
+      }
+    }
+    # If no matching next word is found, pick a word at random
+    if (!next_word_found) {
+      generated_text[i] <- sample(b[!is.na(b)], 1)
+      next_word <- match(generated_text[i], b)
+      current_sequence_len <- length(current_sequence)
+      # Determine the length of current_sequence
+      if (current_sequence_len == mlag) {
+        current_sequence <- c(current_sequence[-1], next_word)
+      } else {
+        current_sequence <- c(current_sequence, next_word)
+      }
+    }
+  }
+  
+  return(generated_text)
+}
+
+nw <- 50  
+mlag <- 4  
+generated_text <- simulate_text(M, common_words, nw, mlag)
+cat(generated_text, sep = " ")
+
+#Q10
+# 创建数据框保存词频
+word_freq <- data.frame(
+  word = tolower(a_split),  # 以小写形式存储
+  capital = grepl("^[A-Z]", a_split)  # 检查是否以大写字母开头
+)
+
+# 统计大写和小写的频率
+word_count <- aggregate(capital ~ word, data = word_freq, FUN = mean)
+
+# 筛选出大写频率高的词汇
+usually_capitalized <- word_count[word_count$capital > 0.5, "word"]
+
+b <- common_words
+capitalize_words <- usually_capitalized
+
+# 遍历 b 列表并检查每个单词是否在 capitalized_words 列表中
+for (i in 1:length(b)) {
+  # 如果 b 列表中的单词在 capitalized_words 列表中
+  if (b[i] %in% capitalized_words) {
+    # 将该单词的首字母大写
+    b[i] <- paste0(toupper(substr(b[i], 1, 1)), substr(b[i], 2, nchar(b[i])))
+  }
+}
+
+# 输出结果
+print(b)
+
+generated_text_new <- simulate_text(M, b, nw, mlag)
+cat(generated_text_new, sep = " ")
+
+# 处理标点符号，确保它们紧跟在前面的单词后面
+for (i in 2:length(generated_text_new)) {
+  # 检查当前单词是否为标点符号
+  if (generated_text_new[i] %in% c(".", ",", ";", "!", ":", "?")) {
+    # 将标点符号附加到前一个单词后面
+    generated_text_new[i - 1] <- paste0(generated_text_new[i - 1], generated_text_new[i])
+    # 清除标点符号占据的当前位置
+    generated_text_new[i] <- ""
+  }
+}
+# 移除所有为空的元素
+formatted_text <- generated_text_new[generated_text_new != ""]
+
+
+# 输出格式化后的文本
+cat(formatted_text, sep = " ")
