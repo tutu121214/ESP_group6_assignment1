@@ -1,0 +1,65 @@
+# Q9: Generate 50-word sections based on word frequencies (independent word selection)
+generate_random_text <- function(common_words, occur_counts, nw) {
+  # Get the probability for each common word based on its frequency
+  word_probabilities <- occur_counts[occur_counts >= threshold] / sum(occur_counts[occur_counts >= threshold])
+  
+  # Randomly select nw words based on their probabilities
+  random_text <- sample(common_words, size = nw, replace = TRUE, prob = word_probabilities)
+  
+  return(random_text)
+}
+
+# Set nw (number of words) to 50 for this task
+nw <- 50
+random_text <- generate_random_text(common_words, occur_counts, nw)
+
+# Print out the randomly generated text
+cat(random_text, sep = " ")
+
+#Q10
+# 创建数据框保存词频
+word_freq <- data.frame(
+  word = tolower(a_split),  # 以小写形式存储
+  capital = grepl("^[A-Z]", a_split)  # 检查是否以大写字母开头
+)
+
+# 统计大写和小写的频率
+word_count <- aggregate(capital ~ word, data = word_freq, FUN = mean)
+
+# 筛选出大写频率高的词汇
+usually_capitalized <- word_count[word_count$capital > 0.5, "word"]
+
+b <- common_words
+capitalize_words <- usually_capitalized
+
+# 遍历 b 列表并检查每个单词是否在 capitalized_words 列表中
+for (i in 1:length(b)) {
+  # 如果 b 列表中的单词在 capitalized_words 列表中
+  if (b[i] %in% capitalized_words) {
+    # 将该单词的首字母大写
+    b[i] <- paste0(toupper(substr(b[i], 1, 1)), substr(b[i], 2, nchar(b[i])))
+  }
+}
+
+# 输出结果
+print(b)
+
+generated_text_new <- simulate_text(M, b, nw, mlag)
+cat(generated_text_new, sep = " ")
+
+# 处理标点符号，确保它们紧跟在前面的单词后面
+for (i in 2:length(generated_text_new)) {
+  # 检查当前单词是否为标点符号
+  if (generated_text_new[i] %in% c(".", ",", ";", "!", ":", "?")) {
+    # 将标点符号附加到前一个单词后面
+    generated_text_new[i - 1] <- paste0(generated_text_new[i - 1], generated_text_new[i])
+    # 清除标点符号占据的当前位置
+    generated_text_new[i] <- ""
+  }
+}
+# 移除所有为空的元素
+formatted_text <- generated_text_new[generated_text_new != ""]
+
+
+# 输出格式化后的文本
+cat(formatted_text, sep = " ")
