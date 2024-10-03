@@ -5,7 +5,6 @@ a <- gsub("_(","",a,fixed=TRUE) ## remove "_("
 a
 
 # Q4:define the split_punct function
-## marks_position = grep(marks,words,fixed=TRUE)
 split_punct <- function(words, marks){
 
   full_list <- words
