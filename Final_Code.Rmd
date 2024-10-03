@@ -1,11 +1,11 @@
-#Q1-Q3
+# Q1-Q3
 #setwd("/Users/huangym/ESP_group6_assignment1")
 a <- scan("4300-0.txt",what="character",skip=73,nlines=32858-73,fileEncoding="UTF-8")
 a <- gsub("_(","",a,fixed=TRUE) ## remove "_("
 a
 
-#Q4:define the split_punct function
-##marks_position = grep(marks,words,fixed=TRUE)
+# Q4:define the split_punct function
+## marks_position = grep(marks,words,fixed=TRUE)
 split_punct <- function(words, marks){
 
   full_list <- words
@@ -22,28 +22,28 @@ split_punct <- function(words, marks){
   return(full_list)
 }
 
-#Q5:Use the function to seperate the punctuation marks from words they are attached to in the text.
+# Q5:Use the function to seperate the punctuation marks from words they are attached to in the text.
 marks <- c(".",",",";","!",":","?")
 split_punct(a, marks)
 
-#Q6a:Use tolower function to replace the upper case letters in words with lower case letters.
+# Q6a:Use tolower function to replace the upper case letters in words with lower case letters.
 a_split <- split_punct(a, marks)
 a_lower <- tolower(a_split)
 a_lower
 
-#Use unique to find the vecter(a_unique) of unique words.
+# Use unique to find the vecter(a_unique) of unique words.
 a_unique <- unique(a_lower)
 a_unique
 
-#Q6b:Use match to find the vector of indices indicating which element in the unique word vector each element in the (lower case) text corresponds to.
+# Q6b:Use match to find the vector of indices indicating which element in the unique word vector each element in the (lower case) text corresponds to.
 index_vector <- match(a_lower, a_unique)
 index_vector
 
-#Q6c:Use the index vector and the tabulate function to count up how many time each unique word occurs in the text.
+# Q6c:Use the index vector and the tabulate function to count up how many time each unique word occurs in the text.
 occur_counts <- tabulate(index_vector)
 occur_counts
 
-#Q6d:Decide on a threshold number of occurrences at which a word should be included in the set of m ≈ 1000 most common words.
+# Q6d:Decide on a threshold number of occurrences at which a word should be included in the set of m ≈ 1000 most common words.
 threshold_search <- function(counts, desired_count) {
   sorted_counts <- sort(counts, decreasing = TRUE)
   return(sorted_counts[desired_count])
@@ -52,15 +52,15 @@ threshold_search <- function(counts, desired_count) {
 threshold <- threshold_search(occur_counts, 1000)
 threshold
 
-#Q6e:Create a vector, b, of the m most commonly occurring words
+# Q6e:Create a vector, b, of the m most commonly occurring words
 b <- a_unique[occur_counts >= threshold]
 b
 
-#Q7a:Use match to create a vector indicating the position of each word in the full text within the most common word vector, b. If a word is not in b, match returns NA.
+# Q7a:Use match to create a vector indicating the position of each word in the full text within the most common word vector, b. If a word is not in b, match returns NA.
 a_lower_2 <- match(a_lower, b)
 a_lower_2
 
-#Q7b:Generate matrix M, where each row represents a sequence of mlag + 1 consecutive words from the text.
+# Q7b:Generate matrix M, where each row represents a sequence of mlag + 1 consecutive words from the text.
 mlag <- 4
 n <- length(a_lower)
 M <- matrix(NA, n - mlag, mlag + 1)
@@ -70,7 +70,7 @@ for(i in 1:(mlag + 1)){
 }
 M
 
-#Q8:Simulate nw-word sections from our model
+# Q8:Simulate nw-word sections from our model
 simulate_text <- function(M, b, nw, mlag) {
 # Randomly select the first word from the non-NA word
   current_sequence <- sample(M[!is.na(M[,1]), 1], 1)
