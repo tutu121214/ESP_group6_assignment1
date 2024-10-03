@@ -1,11 +1,11 @@
-#Q1-Q3
-#setwd("D:/Users/tt/SDS-Sem1/Statistical Programming/Assignment")
+# Q1-Q3
+#setwd("/Users/huangym/ESP_group6_assignment1")
 a <- scan("4300-0.txt",what="character",skip=73,nlines=32858-73,fileEncoding="UTF-8")
 a <- gsub("_(","",a,fixed=TRUE) ## remove "_("
 a
 
-#define the split_punct function:(Q4)
-##marks_position = grep(marks,words,fixed=TRUE)
+# Q4:define the split_punct function
+## marks_position = grep(marks,words,fixed=TRUE)
 split_punct <- function(words, marks){
 
   full_list <- words
@@ -22,6 +22,170 @@ split_punct <- function(words, marks){
   return(full_list)
 }
 
-#Q5:Use the function to seperate the punctuation marks from words they are attached to in the text.
+# Q5:Use the function to seperate the punctuation marks from words they are attached to in the text.
 marks <- c(".",",",";","!",":","?")
 split_punct(a, marks)
+
+# Q6a:Use tolower function to replace the upper case letters in words with lower case letters.
+a_split <- split_punct(a, marks)
+a_lower <- tolower(a_split)
+a_lower
+
+# Use unique to find the vecter(a_unique) of unique words.
+a_unique <- unique(a_lower)
+a_unique
+
+# Q6b:Use match to find the vector of indices indicating which element in the unique word vector each element in the (lower case) text corresponds to.
+index_vector <- match(a_lower, a_unique)
+index_vector
+
+# Q6c:Use the index vector and the tabulate function to count up how many time each unique word occurs in the text.
+occur_counts <- tabulate(index_vector)
+occur_counts
+
+# Q6d:Decide on a threshold number of occurrences at which a word should be included in the set of m ≈ 1000 most common words.
+threshold_search <- function(counts, desired_count) {
+  sorted_counts <- sort(counts, decreasing = TRUE)
+  return(sorted_counts[desired_count])
+}
+
+threshold <- threshold_search(occur_counts, 1000)
+threshold
+
+# Q6e:Create a vector, b, of the m most commonly occurring words
+b <- a_unique[occur_counts >= threshold]
+b
+
+# Q7a:Use match to create a vector indicating the position of each word in the full text within the most common word vector, b. If a word is not in b, match returns NA.
+a_lower_2 <- match(a_lower, b)
+a_lower_2
+
+# Q7b:Generate matrix M, where each row represents a sequence of mlag + 1 consecutive words from the text.
+mlag <- 4
+n <- length(a_lower)
+M <- matrix(NA, n - mlag, mlag + 1)
+
+for(i in 1:(mlag + 1)){
+  M[, i] <- a_lower_2[i:(n - mlag + i - 1)]
+}
+M
+
+# Q8:Simulate nw-word sections from our model
+simulate_text <- function(M, b, nw, mlag) {
+# Randomly select the first word from the non-NA word
+  current_sequence <- sample(M[!is.na(M[,1]), 1], 1)
+  generated_text <- vector("character", nw)
+  generated_text[1] <- b[current_sequence]
+  
+  # Generate the next word
+  for (i in 2:nw) {
+    next_word_found <- FALSE
+    for (j in mlag:1) {
+      if (i > j) {
+        current_sequence_len <- length(current_sequence)
+        compare_len <- min(j, current_sequence_len)
+        # Compare rows of M with the current_sequence for the appropriate columns
+        matched_rows <- apply(M[, 1:j, drop = FALSE], 1, function(row) {
+          all(row == current_sequence[(current_sequence_len - compare_len + 1):current_sequence_len])
+        })
+        # Find a matching sequence in matrix M
+        possible_next_words <- M[matched_rows, (j + 1)]
+        possible_next_words <- possible_next_words[!is.na(possible_next_words)]
+        if (length(possible_next_words) > 0) {
+        # Choose at random from the next possible word
+          next_word <- sample(possible_next_words, 1)
+          generated_text[i] <- b[next_word]
+          if (current_sequence_len == mlag) {
+          # If the length is equal to mlag, remove the first word and add the new word
+            current_sequence <- c(current_sequence[-1], next_word)
+          } else {
+          # Otherwise add new words directly
+            current_sequence <- c(current_sequence, next_word)
+          }
+          next_word_found <- TRUE
+          break
+        }
+      }
+    }
+    # If no matching next word is found, pick a word at random
+    if (!next_word_found) {
+      generated_text[i] <- sample(b[!is.na(b)], 1)
+      next_word <- match(generated_text[i], b)
+      current_sequence_len <- length(current_sequence)
+      # Determine the length of current_sequence
+      if (current_sequence_len == mlag) {
+        current_sequence <- c(current_sequence[-1], next_word)
+      } else {
+        current_sequence <- c(current_sequence, next_word)
+      }
+    }
+  }
+  
+  return(generated_text)
+}
+
+nw <- 50  
+mlag <- 4  
+generated_text <- simulate_text(M, b, nw, mlag)
+cat(generated_text, sep = " ")
+
+# Q9: Generate 50-word sections based common word frequencies (independent word selection)
+generate_text_2 <- function(common_words, occur_counts, nw) {
+  # Get the word probability for each common word based on its frequency
+  word_prob <- occur_counts[occur_counts >= threshold] / sum(occur_counts[occur_counts >= threshold])
+  
+  # Randomly select nw words based on their probabilities
+  generate_text_freq <- sample(common_words, size = nw, replace = TRUE, prob = word_prob)
+  
+  return(generate_text_freq)
+}
+
+# Set nw (number of words) to 50 for this task
+nw <- 50
+generate_text_freq <- generate_text_2(b, occur_counts, nw)
+
+# Print out the generated text based common word frequencies
+cat(generate_text_freq, sep = " ")
+
+#Q10
+# Create a data frame to store word frequencies
+word_freq <- data.frame(
+  word = a_lower,  # Store in lowercase
+  capital = grepl("^[A-Z]", a_split)  # Check if it starts with a capital letter
+)
+
+# Count the frequency of uppercase and lowercase occurrences
+cap_word_count <- aggregate(capital ~ word, data = word_freq, FUN = mean)
+
+# Select words with a high frequency of capitalization. We define a word as having a high frequency of capitalization if it appears with a capital letter more than half of the times it occurs in total.
+capitalized_words <- cap_word_count[cap_word_count$capital > 0.5, "word"]
+
+# Iterate through the b list and check if each word is in the capitalized_words list.
+for (i in 1:length(b)) {
+  # If the word in the b list is in the capitalized_words list
+  if (b[i] %in% capitalized_words) {
+    # Capitalize the first letter of the word
+    b[i] <- paste0(toupper(substr(b[i], 1, 1)), substr(b[i], 2, nchar(b[i])))
+  }
+}
+
+print(b)
+
+generated_text_new <- simulate_text(M, b, nw, mlag)
+cat(generated_text_new, sep = " ")
+
+# Handle punctuation to ensure it directly follows the preceding word
+for (i in 2:length(generated_text_new)) {
+  # Check if the current word is a punctuation mark
+  if (generated_text_new[i] %in% c(".", ",", ";", "!", ":", "?")) {
+    # Append the punctuation mark to the previous word
+    generated_text_new[i - 1] <- paste0(generated_text_new[i - 1], generated_text_new[i])
+    # Clear the current position occupied by the punctuation mark
+    generated_text_new[i] <- ""
+  }
+}
+# Remove all empty elements
+modified_text <- generated_text_new[generated_text_new != ""]
+
+# Output the modified text
+cat(modified_text, sep = " ")
