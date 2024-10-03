@@ -1,25 +1,25 @@
-# Q9: Generate 50-word sections based on word frequencies (independent word selection)
-generate_random_text <- function(common_words, occur_counts, nw) {
-  # Get the probability for each common word based on its frequency
-  word_probabilities <- occur_counts[occur_counts >= threshold] / sum(occur_counts[occur_counts >= threshold])
+# Q9: Generate 50-word sections based common word frequencies (independent word selection)
+generate_text_2 <- function(common_words, occur_counts, nw) {
+  # Get the word probability for each common word based on its frequency
+  word_prob <- occur_counts[occur_counts >= threshold] / sum(occur_counts[occur_counts >= threshold])
   
   # Randomly select nw words based on their probabilities
-  random_text <- sample(common_words, size = nw, replace = TRUE, prob = word_probabilities)
+  generate_text_freq <- sample(common_words, size = nw, replace = TRUE, prob = word_prob)
   
-  return(random_text)
+  return(generate_text_freq)
 }
 
 # Set nw (number of words) to 50 for this task
 nw <- 50
-random_text <- generate_random_text(common_words, occur_counts, nw)
+generate_text_freq <- generate_text_2(common_words, occur_counts, nw)
 
-# Print out the randomly generated text
-cat(random_text, sep = " ")
+# Print out the generated text based common word frequencies
+cat(generate_text_freq, sep = " ")
 
 #Q10
 # 创建数据框保存词频
 word_freq <- data.frame(
-  word = tolower(a_split),  # 以小写形式存储
+  word = a_lower,  # 以小写形式存储
   capital = grepl("^[A-Z]", a_split)  # 检查是否以大写字母开头
 )
 
@@ -30,7 +30,7 @@ word_count <- aggregate(capital ~ word, data = word_freq, FUN = mean)
 usually_capitalized <- word_count[word_count$capital > 0.5, "word"]
 
 b <- common_words
-capitalize_words <- usually_capitalized
+capitalized_words <- usually_capitalized
 
 # 遍历 b 列表并检查每个单词是否在 capitalized_words 列表中
 for (i in 1:length(b)) {
