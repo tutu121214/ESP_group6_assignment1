@@ -12,7 +12,7 @@ split_punct <- function(words, marks){
   
   for(punc in marks){#Iterate over each element in marks
     full_list_tmp <- full_list
-    matches_order <- grep(punc, full_list_tmp, fixed = TRUE)#Find the character position of the corresponding punctuation mark
+    matches_order <- grep(punc, full_list_tmp, fixed = TRUE)# Find the character position of the corresponding punctuation mark
     marks_len <- length(matches_order)#Number of words with corresponding punctuation marks
     full_list <- rep("",length(full_list_tmp)+marks_len)#Create an empty list that can drop both split words and punctuation.
     f <- matches_order+1:length(matches_order)#f is an indexed list of the original punctuation one position back (where the split punctuation is to be placed)
